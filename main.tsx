@@ -1,6 +1,7 @@
 import { Form, Input, Button, Card, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import { Link, Route } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 interface LoginForm {
     username: string;
@@ -16,6 +17,13 @@ export const Main = () => {
             console.log('登录信息:', values);
             message.success('登录成功！');
             // 可以在这里添加路由跳转逻辑
+            if (values.username && values.password) {
+                // 生成一个随机的登录token并存储到本地缓存
+                const token = Math.random().toString(36).substr(2) + Date.now().toString(36);
+                localStorage.setItem('login_token', token);
+                window.location.href = "/";
+                return;
+            }
         } catch (error) {
             message.error('登录失败，请重试');
         }
@@ -62,7 +70,7 @@ export const Main = () => {
 
                     <Form.Item>
                         <Button
-                            data-testId="login-btn"
+                            data-testid="login-btn"
                             type="primary"
                             htmlType="submit"
                             style={{ width: '100%' }}
@@ -76,11 +84,40 @@ export const Main = () => {
     );
 };
 
+const LOGIN_PATH = "/login";
+
+// 在路由加载前检查
+const loginLoader = () => {
+    const token = localStorage.getItem('login_token');
+    if (token) {
+        throw new Response("", {
+            status: 302,
+            headers: {
+                Location: "/",
+            },
+        });
+    }
+    return null;
+};
+
 export const Settings = {
+    load: () => {
+        console.log('login Settings被读取了');
+        localStorage.setItem("LOGIN_PATH", LOGIN_PATH);
+        const token = localStorage.getItem('login_token');
+        if (token && window.location.pathname === '/login') {
+            window.location.href = "/";
+        }
+    },
     menu_items: null,
-    route: (
-        <Route path='/login'>
-            <Route index element={<Main />} />
-        </Route>
-    )
+    route: {
+        path: LOGIN_PATH,
+        loader: loginLoader,
+        children: [
+            {
+                index: true,
+                element: <Main />
+            }
+        ]
+    }
 };

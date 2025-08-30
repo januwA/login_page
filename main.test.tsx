@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -6,7 +7,7 @@ import { message } from 'antd';
 import { Main } from './main';
 
 vi.mock('antd', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+  const actual = await importOriginal();
   return {
     ...actual,
     message: {
